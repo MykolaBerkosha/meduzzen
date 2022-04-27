@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from app.account import views
+from apps.accounts import views
 
 
 urlpatterns = [

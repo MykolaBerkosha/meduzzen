@@ -1,8 +1,11 @@
+from django.forms import model_to_dict
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from django.contrib.auth.models import User, UserManager
+
+from apps.accounts.forms import CreateUserForm
 
 
 class AccountsAPI(APIView):
@@ -28,11 +31,32 @@ class AccountsAPI(APIView):
             'email': user.email,
         })
 
-    def post(self, request):
+    def get(self, request):
 
-        user = UserManager.objects.create()
+        user = User.objects.all().values()
 
         return Response({
-            'status': 'OK',
-            'user_id': user.pk
+            'user': list(user),
+        })
+
+
+    def post(self, request):
+
+        form = CreateUserForm(data=request.data)
+
+        if not form.is_valid():
+            return Response({
+                'status': 'ERROR',
+                **dict(form.errors)
+            })
+
+        data = form.cleaned_data
+        password = data.pop('password')
+
+        user = User.objects.create(**data)
+        user.set_password(password)
+        user.save()
+
+        return Response({
+            'user': model_to_dict(user)
         })
