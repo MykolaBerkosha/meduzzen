@@ -1,4 +1,5 @@
 from django.forms import model_to_dict
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
@@ -6,11 +7,21 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 
 from apps.accounts.forms import CreateUserForm
+from apps.accounts.serializers import UpdateSerializer
 
 
 class AccountsAPI(APIView):
 
     permission_classes = (IsAdminUser, )
+
+    def patch(self, request):
+        user = self.request.user
+        serializer = UpdateSerializer(user, data=request.data, partial=True)
+        print(user)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
         try:
@@ -39,7 +50,6 @@ class AccountsAPI(APIView):
             'user': list(user),
         })
 
-
     def post(self, request):
 
         form = CreateUserForm(data=request.data)
@@ -65,6 +75,5 @@ class AccountsAPI(APIView):
 
         user = self.request.user
         user.delete()
-        print(user)
 
         return Response({'user': model_to_dict(user)})
