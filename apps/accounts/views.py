@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from django.contrib.auth.models import User, UserManager
+from django.contrib.auth.models import User
 
 from apps.accounts.forms import CreateUserForm
 
@@ -60,3 +60,11 @@ class AccountsAPI(APIView):
         return Response({
             'user': model_to_dict(user)
         })
+
+    def delete(self, request, *args, **kwargs):
+
+        user = self.request.user
+        user.delete()
+        print(user)
+
+        return Response({'user': model_to_dict(user)})
