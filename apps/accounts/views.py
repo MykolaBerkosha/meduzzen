@@ -1,3 +1,6 @@
+
+import asyncio
+
 from django.forms import model_to_dict
 from rest_framework import status
 from rest_framework.views import APIView
@@ -10,37 +13,9 @@ from apps.accounts.forms import CreateUserForm
 from apps.accounts.serializers import UpdateSerializer
 
 
-class AccountsAPI(APIView):
+class ListAPI(APIView):
 
     permission_classes = (IsAdminUser, )
-
-    def patch(self, request):
-        user = self.request.user
-        serializer = UpdateSerializer(user, data=request.data, partial=True)
-        print(user)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get(self, request):
-        try:
-            user = User.objects.get(id=request.GET.get('user_id'))
-        except User.DoesNotExist:
-            return Response({
-                'status': "User not found"
-            })
-
-        if not user.is_active:
-            return Response({
-                'status': "User is not active"
-            })
-
-        return Response({
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'email': user.email,
-        })
 
     def get(self, request):
 
@@ -71,9 +46,49 @@ class AccountsAPI(APIView):
             'user': model_to_dict(user)
         })
 
-    def delete(self, request, *args, **kwargs):
 
+class ObjectAPI(APIView):
+
+    permission_classes = (IsAdminUser, )
+
+    def get(self, request, user_id):
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({
+                'status': "User not found"
+            })
+
+        if not user.is_active:
+            return Response({
+                'status': "User is not active"
+            })
+
+        return Response({
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+        })
+
+    def patch(self, request):
         user = self.request.user
+        serializer = UpdateSerializer(user, data=request.data, partial=True)
+        print(user)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, user_id):
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({
+                'status': "User not found"
+            })
+
         user.delete()
 
-        return Response({'user': model_to_dict(user)})
+        return Response({'status': 'User removed'})
