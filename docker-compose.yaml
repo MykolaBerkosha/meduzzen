@@ -1,0 +1,37 @@
+version: "3.3"
+services:
+ nginx:
+   image: nginx:1.18
+   ports:
+     - "80:80"
+     - "443:443"
+   container_name: proxy_nginx
+   volumes:
+     - ./nginx:/etc/nginx/conf.d/
+     - ./logs:/var/log/nginx/
+ postgresql:
+   image: postgres
+   restart: always
+   container_name: postgresql
+   ports:
+     - 5432:5432
+   volumes:
+     - psql_data:/var/lib/postgresql/data
+   environment:
+     POSTGRES_DB: "dev"
+     POSTGRES_PASSWORD: "1"
+ django:
+   build:
+     context: .
+     dockerfile: Dockerfile
+   container_name: django
+   ports:   
+     - "8000:8000"
+   environment:
+    HOST: 0.0.0.0
+   depends_on:
+     - postgresql
+   tty: true
+
+volumes:
+  psql_data:
