@@ -1,6 +1,4 @@
 
-import asyncio
-
 from django.forms import model_to_dict
 from rest_framework import status
 from rest_framework.views import APIView
@@ -18,12 +16,7 @@ class ListAPI(APIView):
     permission_classes = (IsAdminUser, )
 
     def get(self, request):
-
-        user = User.objects.all().values()
-
-        return Response({
-            'user': list(user),
-        })
+        return Response(list(User.objects.all().values()))
 
     def post(self, request):
 
@@ -74,7 +67,6 @@ class ObjectAPI(APIView):
     def patch(self, request):
         user = self.request.user
         serializer = UpdateSerializer(user, data=request.data, partial=True)
-        print(user)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
